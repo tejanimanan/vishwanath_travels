@@ -7,6 +7,8 @@ import '../node_modules/bootstrap/dist/js/bootstrap.bundle'
 import { BrowserRouter, Route, Router, Routes } from 'react-router-dom';
 import Navbar from './Componet/Navbar';
 import Surat from './Componet/Surat';
+import BusBooking from './Componet/BusBooking';
+
 function App() {
   return (
     <div className="App">
@@ -18,6 +20,7 @@ function App() {
           <Route path='/bhavnagar' element={<Home/>}></Route>
           <Route path='/tana' element={<Home/>}></Route>
           <Route path='/talaja' element={<Home/>}></Route>
+          <Route path='/bus/:busId' element={<BusBooking/>}></Route>
         </Routes>
       </BrowserRouter>
     </div>
