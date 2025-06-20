@@ -53,6 +53,28 @@ const getTodayDate = () => {
   return today.toISOString().split('T')[0];
 };
 
+// Define couple seat pairs
+const coupleSeatPairs = [
+  [1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12],
+  [13, 14], [15, 16], [17, 18], [19, 20], [21, 22], [23, 24]
+];
+
+// Helper to find the couple seat for a given seat
+const getCoupleSeat = (seat) => {
+  for (let pair of coupleSeatPairs) {
+    if (pair.includes(seat)) {
+      return pair.find(s => s !== seat);
+    }
+  }
+  return null;
+};
+
+// Bus number options by bus name
+const busNumberOptions = {
+  MonStar: ["3100", "3200"],
+  Tarzzan: ["6001", "6000"]
+};
+
 export default function BusBooking() {
   const { busId } = useParams();
   const [selectedSeat, setSelectedSeat] = useState(null);
@@ -68,6 +90,7 @@ export default function BusBooking() {
   const [filterDate, setFilterDate] = useState(getTodayDate());
   const [modalBooking, setModalBooking] = useState(null); // For modal
   const [message, setMessage] = useState(null); // For error/success messages
+  const [editBooking, setEditBooking] = useState(null);
 
   // Load reserved seats from Firebase for this bus and date
   useEffect(() => {
@@ -85,6 +108,21 @@ export default function BusBooking() {
     return () => unsubscribe();
   }, [busId, filterDate]);
 
+  // When editing, pre-fill the form and open the modal
+  useEffect(() => {
+    if (editBooking) {
+      setSelectedSeat(editBooking.seat);
+      setFormData({
+        name: editBooking.name,
+        number: editBooking.number,
+        takeoff: editBooking.takeoff,
+        destination: editBooking.destination,
+        date: editBooking.date,
+        busNumber: editBooking.busNumber,
+      });
+    }
+  }, [editBooking]);
+
   const handleSeatClick = (seat) => {
     setSelectedSeat(seat);
   };
@@ -95,18 +133,21 @@ export default function BusBooking() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    let coupleSeats = [selectedSeat];
+    const couple = getCoupleSeat(selectedSeat);
+    if (couple) coupleSeats.push(couple);
+    coupleSeats = coupleSeats.sort((a, b) => a - b); // Always sorted
     const booking = {
-      seat: selectedSeat,
+      seat: Math.min(...coupleSeats), // Always the lowest seat for the booking
+      coupleSeats,
       ...formData,
       busName: busId,
     };
-    set(ref(database, `bookings/${busId}/${formData.date}/${selectedSeat}`), booking)
-      .then(() => {
-        setMessage({ type: 'success', text: 'Booking successful!' });
-      })
-      .catch(() => {
-        setMessage({ type: 'danger', text: 'Booking failed. Please try again.' });
-      });
+    // Save both seats in Firebase
+    coupleSeats.forEach(seatNum => {
+      set(ref(database, `bookings/${busId}/${formData.date}/${seatNum}`), booking);
+    });
+    setMessage({ type: 'success', text: `Booking successful for seat${coupleSeats.length > 1 ? 's' : ''}: ${coupleSeats.join(', ')}` });
     setSelectedSeat(null);
     setFormData({
       name: '',
@@ -116,15 +157,37 @@ export default function BusBooking() {
       date: getTodayDate(),
       busNumber: '',
     });
+    setEditBooking(null);
+  };
+
+  // Edit handler
+  const handleEditBooking = (booking) => {
+    setEditBooking(booking);
   };
 
   // Filter bookings for the selected date
-  const bookingsForDate = reservedSeats.filter(b => b.date === filterDate);
-  const reservedSeatNumbers = bookingsForDate.map(b => b.seat);
+  const bookingsForDateRaw = reservedSeats.filter(b => b.date === filterDate);
+  // Only show one entry per couple booking
+  const bookingsForDate = bookingsForDateRaw.filter((b, idx, arr) => {
+    if (b.coupleSeats && b.coupleSeats.length > 1) {
+      // Only show for the lowest seat in the couple
+      return Math.min(...b.coupleSeats) === b.seat;
+    }
+    // For single seats, show as is
+    return !arr.some((other, i) => i < idx && other.seat === b.seat && other.date === b.date);
+  });
+  const reservedSeatNumbers = reservedSeats.reduce((acc, b) => {
+    if (b.coupleSeats && Array.isArray(b.coupleSeats)) {
+      return acc.concat(b.coupleSeats);
+    }
+    return acc.concat(b.seat);
+  }, []);
 
   // Delete booking by index in bookingsForDate
   const handleDeleteBooking = (booking) => {
-    remove(ref(database, `bookings/${busId}/${booking.date}/${booking.seat}`))
+    // Remove both seats if couple
+    const seatsToRemove = booking.coupleSeats && Array.isArray(booking.coupleSeats) ? booking.coupleSeats : [booking.seat];
+    Promise.all(seatsToRemove.map(seatNum => remove(ref(database, `bookings/${busId}/${booking.date}/${seatNum}`))))
       .then(() => {
         setMessage({ type: 'success', text: 'Booking deleted.' });
       })
@@ -140,12 +203,94 @@ export default function BusBooking() {
 
   return (
     <div className="container mt-4">
+      {/* Bus image at the top */}
+      <div className="text-center mb-3">
+        <img src="/v1.png" alt="Bus" style={{ maxWidth: 200, borderRadius: 12 }} />
+      </div>
       {message && (
         <div className={`alert alert-${message.type} alert-dismissible fade show`} role="alert">
           {message.text}
           <button type="button" className="btn-close" onClick={() => setMessage(null)}></button>
         </div>
       )}
+      <div className="row">
+        <div className="col-12">
+          <h2 className="mb-4 d-flex align-items-center justify-content-center">
+            Bus Seat Booking - <span className="text-primary ms-2">{busId}</span>
+            {busId === 'Tarzzan' && (
+              <img src="/v1.png" alt="Tarzzan" style={{ width: 40, height: 40, marginLeft: 10, borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
+            )}
+          </h2>
+        </div>
+      </div>
+      <div className="row justify-content-center">
+        <div className="col-md-10 d-flex justify-content-around flex-wrap">
+          <div>
+            <h5 className="text-center">Lower Deck</h5>
+            {renderDeck(lowerDeckLayout, reservedSeatNumbers, handleSeatClick)}
+          </div>
+          <div>
+            <h5 className="text-center">Upper Deck</h5>
+            {renderDeck(upperDeckLayout, reservedSeatNumbers, handleSeatClick)}
+          </div>
+        </div>
+      </div>
+      {/* Passenger List Table */}
+      <div className="row justify-content-center mt-4">
+        <div className="col-md-10">
+          <div className="card">
+            <div className="card-header d-flex align-items-center justify-content-between">
+              <span className="fw-bold">Passenger List</span>
+              <input
+                type="date"
+                className="form-control form-control-sm ms-2"
+                style={{ width: 'auto' }}
+                value={filterDate}
+                onChange={e => setFilterDate(e.target.value)}
+              />
+            </div>
+            <div className="card-body" style={{ maxHeight: 400, overflowY: 'auto' }}>
+              {bookingsForDate.length === 0 ? (
+                <div className="text-muted">No bookings for this date.</div>
+              ) : (
+                <div className="table-responsive">
+                  <table className="table table-bordered align-middle">
+                    <thead className="table-light">
+                      <tr>
+                        <th>Seat(s)</th>
+                        <th>Name</th>
+                        <th>Mobile</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Bus Name</th>
+                        <th>Bus Number</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bookingsForDate.map((b, idx) => (
+                        <tr key={idx} style={{ cursor: 'pointer' }}>
+                          <td>{b.coupleSeats ? b.coupleSeats.join(', ') : b.seat}</td>
+                          <td>{b.name}</td>
+                          <td>{b.number}</td>
+                          <td>{b.takeoff}</td>
+                          <td>{b.destination}</td>
+                          <td>{b.busName}</td>
+                          <td>{b.busNumber}</td>
+                          <td>
+                            <button className="btn btn-sm btn-primary me-2" onClick={() => handleEditBooking(b)}>Edit</button>
+                            <button className="btn btn-sm btn-danger" onClick={() => handleDeleteBooking(b)}>Delete</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
       {/* Modal for booked ticket details */}
       {modalBooking && (
         <div className="modal show fade" style={{ display: 'block', background: 'rgba(0,0,0,0.5)' }} tabIndex="-1">
@@ -158,7 +303,7 @@ export default function BusBooking() {
               <div className="modal-body">
                 <p><b>Bus:</b> {modalBooking.busName}</p>
                 <p><b>Bus Number:</b> {modalBooking.busNumber}</p>
-                <p><b>Seat:</b> {modalBooking.seat}</p>
+                <p><b>Seat{(modalBooking.coupleSeats && modalBooking.coupleSeats.length > 1) ? 's' : ''}:</b> {modalBooking.coupleSeats ? modalBooking.coupleSeats.join(', ') : modalBooking.seat}</p>
                 <p><b>Name:</b> {modalBooking.name}</p>
                 <p><b>Mobile:</b> {modalBooking.number}</p>
                 <p><b>From:</b> {modalBooking.takeoff}</p>
@@ -178,8 +323,8 @@ export default function BusBooking() {
           <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Reserve Seat {selectedSeat}</h5>
-                <button type="button" className="btn-close" onClick={handleCloseReserveModal}></button>
+                <h5 className="modal-title">{editBooking ? `Edit Booking (Seat${formData.coupleSeats && formData.coupleSeats.length > 1 ? 's' : ''}: ${formData.coupleSeats ? formData.coupleSeats.join(', ') : selectedSeat})` : `Reserve Seat ${selectedSeat}`}</h5>
+                <button type="button" className="btn-close" onClick={() => { setSelectedSeat(null); setEditBooking(null); }}></button>
               </div>
               <div className="modal-body">
                 <form onSubmit={handleSubmit} className="row g-3">
@@ -240,18 +385,33 @@ export default function BusBooking() {
                   </div>
                   <div className="col-md-6">
                     <label className="form-label">Bus Number</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="busNumber"
-                      value={formData.busNumber}
-                      onChange={handleChange}
-                      required
-                    />
+                    {busNumberOptions[busId] ? (
+                      <select
+                        className="form-control"
+                        name="busNumber"
+                        value={formData.busNumber}
+                        onChange={handleChange}
+                        required
+                      >
+                        <option value="">Select Bus Number</option>
+                        {busNumberOptions[busId].map((num) => (
+                          <option key={num} value={num}>{num}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        className="form-control"
+                        name="busNumber"
+                        value={formData.busNumber}
+                        onChange={handleChange}
+                        required
+                      />
+                    )}
                   </div>
                   <div className="col-12">
-                    <button type="submit" className="btn btn-success">Reserve</button>
-                    <button type="button" className="btn btn-secondary ms-2" onClick={handleCloseReserveModal}>Cancel</button>
+                    <button type="submit" className="btn btn-success">{editBooking ? 'Update' : 'Reserve'}</button>
+                    <button type="button" className="btn btn-secondary ms-2" onClick={() => { setSelectedSeat(null); setEditBooking(null); }}>Cancel</button>
                   </div>
                 </form>
               </div>
@@ -259,79 +419,6 @@ export default function BusBooking() {
           </div>
         </div>
       )}
-      <div className="row">
-        <div className="col-md-8">
-          <h2 className="mb-4 d-flex align-items-center">
-            Bus Seat Booking - <span className="text-primary ms-2">{busId}</span>
-            {busId === 'Tarzzan' && (
-              <img src="/vishwanath/public/v1.png" alt="Tarzzan" style={{ width: 40, height: 40, marginLeft: 10, borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
-            )}
-          </h2>
-          {/* <div className="d-flex flex-wrap" style={{ maxWidth: 500 }}>
-            {[...Array(TOTAL_SEATS)].map((_, i) => {
-              const seatNum = i + 1;
-              const isReserved = reservedSeatNumbers.includes(seatNum);
-              return (
-                <button
-                  key={seatNum}
-                  className={`m-2 btn ${isReserved ? 'btn-danger' : 'btn-outline-primary'}`}
-                  style={{ width: 50, height: 50 }}
-                  disabled={isReserved}
-                  onClick={() => handleSeatClick(seatNum)}
-                >
-                  {seatNum}
-                </button>
-              );
-            })}
-          </div> */}
-          <div className="d-flex justify-content-around flex-wrap">
-            <div>
-              <h5 className="text-center">Lower Deck</h5>
-              {renderDeck(lowerDeckLayout, reservedSeatNumbers, handleSeatClick)}
-            </div>
-            <div>
-              <h5 className="text-center">Upper Deck</h5>
-              {renderDeck(upperDeckLayout, reservedSeatNumbers, handleSeatClick)}
-            </div>
-          </div>
-
-        </div>
-        <div className="col-md-4">
-          <div className="card">
-            <div className="card-header d-flex align-items-center justify-content-between">
-              <span className="fw-bold">Passenger List</span>
-              <input
-                type="date"
-                className="form-control form-control-sm ms-2"
-                style={{ width: 'auto' }}
-                value={filterDate}
-                onChange={e => setFilterDate(e.target.value)}
-              />
-            </div>
-            <div className="card-body" style={{ maxHeight: 400, overflowY: 'auto' }}>
-              {bookingsForDate.length === 0 ? (
-                <div className="text-muted">No bookings for this date.</div>
-              ) : (
-                <ul className="list-group">
-                  {bookingsForDate.map((b, idx) => (
-                    <li key={idx} className="list-group-item d-flex justify-content-between align-items-center" style={{ cursor: 'pointer' }} onClick={() => setModalBooking(b)}>
-                      <div>
-                        <div><b>Seat:</b> {b.seat}</div>
-                        <div><b>Name:</b> {b.name}</div>
-                        <div><b>Mobile:</b> {b.number}</div>
-                        <div><b>From:</b> {b.takeoff} <b>To:</b> {b.destination}</div>
-                        <div><b>Bus Name:</b> {b.busName}</div>
-                        <div><b>Bus Number:</b> {b.busNumber}</div>
-                      </div>
-                      <button className="btn btn-sm btn-danger" onClick={e => { e.stopPropagation(); handleDeleteBooking(b); }} title="Delete Booking">Delete</button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 } 
