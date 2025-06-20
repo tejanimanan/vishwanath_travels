@@ -8,12 +8,13 @@ import { BrowserRouter, Route, Router, Routes } from 'react-router-dom';
 import Navbar from './Componet/Navbar';
 import Surat from './Componet/Surat';
 import BusBooking from './Componet/BusBooking';
+import { ToastContainer } from 'react-toastify';
 
 function App() {
   return (
     <div className="App">
       <BrowserRouter>
-      
+      <ToastContainer />
         <Routes>
           <Route path='/' element={<Home/>}></Route>
           <Route path='/surat' element={<Surat/>}></Route>

@@ -28,7 +28,7 @@ export default function Surat() {
                                 <h2 className='fw-bold'>MonStar</h2>
                             </div>
                             <div className='card-body'>
-                                <img src='v1.png' className='rounded-5 border-3 border border-info' width="200px" height="200px" alt='..'></img>
+                                <img src='monstar-1.jpg' className='rounded-5 border-3 border border-info' width="200px" height="200px" alt='..'></img>
                             </div>
                         </div>
                     </div>
@@ -48,7 +48,7 @@ export default function Surat() {
                                 <h2 className='fw-bold'>Miltray</h2>
                             </div>
                             <div className='card-body'>
-                                <img src='miltary1.jpg' className='rounded-5 border-3 border border-info' width="200px" height="200px" alt='..'></img>
+                                <img src='miltary-2.jpg' className='rounded-5 border-3 border border-info' width="200px" height="200px" alt='..'></img>
                             </div>
                         </div>
                     </div>

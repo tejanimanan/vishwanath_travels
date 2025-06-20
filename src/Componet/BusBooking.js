@@ -2,25 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { database } from '../firebase';
 import { ref, set, onValue, remove } from 'firebase/database';
+import { toast, ToastContainer } from 'react-toastify';
 
 const TOTAL_SEATS = 36; // Increased to 36
 const lowerDeckLayout = [
-  ['A', 4, 3],
-  ['C', 8, 7],
-  ['E', 12,11],
-  ['G', 16, 15],
-  ['I', 20, 19],
-  ['K', 24, 23],
+  [3, 1, 2],
+  [9, 7, 8],
+  [15, 13,14],
+  [21, 19, 20],
+  [27, 25, 26],
+  [33, 31, 32],
   
 ];
 
 const upperDeckLayout = [
-  ['B', 2, 1],
-  ['D', 6, 5],
-  ['F', 10, 9],
-  ['H', 14, 13],
-  ['J', 18, 17],
-  ['L', 22, 21],
+  [6, 4, 5],
+  [12, 10, 11],
+  [18, 16, 17],
+  [24, 22, 23],
+  [30, 28, 29],
+  [36, 34, 35],
 ];
 const renderDeck = (layout, reservedSeatNumbers, handleSeatClick) => {
   return layout.map((row, rowIndex) => (
@@ -72,7 +73,10 @@ const getCoupleSeat = (seat) => {
 // Bus number options by bus name
 const busNumberOptions = {
   MonStar: ["3100", "3200"],
-  Tarzzan: ["6001", "6000"]
+  Tarzzan: ["6001", "6000"],
+  MustangGT:["2001","2002"],
+  Mountain:["7474","7575"],
+  Miltray:["9981","9918"]
 };
 
 export default function BusBooking() {
@@ -147,8 +151,8 @@ export default function BusBooking() {
     coupleSeats.forEach(seatNum => {
       set(ref(database, `bookings/${busId}/${formData.date}/${seatNum}`), booking);
     });
-    setMessage({ type: 'success', text: `Booking successful for seat${coupleSeats.length > 1 ? 's' : ''}: ${coupleSeats.join(', ')}` });
     setSelectedSeat(null);
+    toast(`Booking successful for seat${coupleSeats.length > 1 ? 's' : ''}: ${coupleSeats.join(', ')}`)
     setFormData({
       name: '',
       number: '',
@@ -204,22 +208,17 @@ export default function BusBooking() {
   return (
     <div className="container mt-4">
       {/* Bus image at the top */}
-      <div className="text-center mb-3">
+      {/* <div className="text-center mb-3">
         <img src="/v1.png" alt="Bus" style={{ maxWidth: 200, borderRadius: 12 }} />
-      </div>
-      {message && (
-        <div className={`alert alert-${message.type} alert-dismissible fade show`} role="alert">
-          {message.text}
-          <button type="button" className="btn-close" onClick={() => setMessage(null)}></button>
-        </div>
-      )}
+      </div> */}
+      
+      <ToastContainer/>
       <div className="row">
         <div className="col-12">
           <h2 className="mb-4 d-flex align-items-center justify-content-center">
             Bus Seat Booking - <span className="text-primary ms-2">{busId}</span>
-            {busId === 'Tarzzan' && (
-              <img src="/v1.png" alt="Tarzzan" style={{ width: 40, height: 40, marginLeft: 10, borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
-            )}
+            
+            
           </h2>
         </div>
       </div>
@@ -229,6 +228,21 @@ export default function BusBooking() {
             <h5 className="text-center">Lower Deck</h5>
             {renderDeck(lowerDeckLayout, reservedSeatNumbers, handleSeatClick)}
           </div>
+          {busId === 'Mountain' && (
+              <img src="/mountain-2.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px", borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
+            )}
+            {busId === 'Tarzzan' && (
+              <img src="/v1.png" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px",  borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
+            )}
+            {busId === 'MonStar' && (
+              <img src="/monstar-1.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px",  borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
+            )}
+            {busId === 'Miltray' && (
+              <img src="/miltary-3.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px",  borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
+            )}
+            {busId === 'MustangGT' && (
+              <img src="/mastang-2.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px",  borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
+            )}
           <div>
             <h5 className="text-center">Upper Deck</h5>
             {renderDeck(upperDeckLayout, reservedSeatNumbers, handleSeatClick)}
