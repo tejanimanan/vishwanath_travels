@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { database } from '../firebase';
 import { ref, set, onValue, remove } from 'firebase/database';
 import { toast, ToastContainer } from 'react-toastify';
@@ -8,11 +8,11 @@ const TOTAL_SEATS = 36; // Increased to 36
 const lowerDeckLayout = [
   [3, 1, 2],
   [9, 7, 8],
-  [15, 13,14],
+  [15, 13, 14],
   [21, 19, 20],
   [27, 25, 26],
   [33, 31, 32],
-  
+
 ];
 
 const upperDeckLayout = [
@@ -70,14 +70,6 @@ const getCoupleSeat = (seat) => {
   return null;
 };
 
-// Bus number options by bus name
-const busNumberOptions = {
-  MonStar: ["3100", "3200"],
-  Tarzzan: ["6001", "6000"],
-  MustangGT:["2001","2002"],
-  Mountain:["7474","7575"],
-  Miltray:["9981","9918"]
-};
 
 export default function BusBooking() {
   const { busId } = useParams();
@@ -211,14 +203,19 @@ export default function BusBooking() {
       {/* <div className="text-center mb-3">
         <img src="/v1.png" alt="Bus" style={{ maxWidth: 200, borderRadius: 12 }} />
       </div> */}
-      
-      <ToastContainer/>
+      <Link
+        to="/surat"
+        className="btn btn-info"
+      >
+        Back
+      </Link>
+      <ToastContainer />
       <div className="row">
         <div className="col-12">
           <h2 className="mb-4 d-flex align-items-center justify-content-center">
             Bus Seat Booking - <span className="text-primary ms-2">{busId}</span>
-            
-            
+
+
           </h2>
         </div>
       </div>
@@ -228,21 +225,36 @@ export default function BusBooking() {
             <h5 className="text-center">Lower Deck</h5>
             {renderDeck(lowerDeckLayout, reservedSeatNumbers, handleSeatClick)}
           </div>
-          {busId === 'Mountain' && (
-              <img src="/mountain-2.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px", borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
-            )}
-            {busId === 'Tarzzan' && (
-              <img src="/v1.png" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px",  borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
-            )}
-            {busId === 'MonStar' && (
-              <img src="/monstar-1.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px",  borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
-            )}
-            {busId === 'Miltray' && (
-              <img src="/miltary-3.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px",  borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
-            )}
-            {busId === 'MustangGT' && (
-              <img src="/mastang-2.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px",  borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
-            )}
+          {busId === 'Mountain7474' && (
+            <img src="/mountain-2.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px", borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
+          )}
+           {busId === 'Mountain7575' && (
+            <img src="/mountain-2.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px", borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
+          )}
+          {busId === 'Tarzzan6000' && (
+            <img src="/v1.png" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px", borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
+          )}
+          {busId === 'Tarzzan6001' && (
+            <img src="/v1.png" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px", borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
+          )}
+          {busId === 'MonStar3100' && (
+            <img src="/monstar-1.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px", borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
+          )}
+          {busId === 'MonStar3200' && (
+            <img src="/monstar-1.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px", borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
+          )}
+          {busId === 'Miltray9981' && (
+            <img src="/miltary-3.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px", borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
+          )}
+          {busId === 'Miltray9918' && (
+            <img src="/miltary-3.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px", borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
+          )}
+          {busId === 'MustangGT2001' && (
+            <img src="/mastang-2.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px", borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
+          )}
+          {busId === 'MustangGT2002' && (
+            <img src="/mastang-2.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px", borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
+          )}
           <div>
             <h5 className="text-center">Upper Deck</h5>
             {renderDeck(upperDeckLayout, reservedSeatNumbers, handleSeatClick)}
@@ -277,7 +289,7 @@ export default function BusBooking() {
                         <th>From</th>
                         <th>To</th>
                         <th>Bus Name</th>
-                        <th>Bus Number</th>
+                       
                         <th>Actions</th>
                       </tr>
                     </thead>
@@ -290,7 +302,7 @@ export default function BusBooking() {
                           <td>{b.takeoff}</td>
                           <td>{b.destination}</td>
                           <td>{b.busName}</td>
-                          <td>{b.busNumber}</td>
+                          
                           <td>
                             <button className="btn btn-sm btn-primary me-2" onClick={() => handleEditBooking(b)}>Edit</button>
                             <button className="btn btn-sm btn-danger" onClick={() => handleDeleteBooking(b)}>Delete</button>
@@ -399,29 +411,17 @@ export default function BusBooking() {
                   </div>
                   <div className="col-md-6">
                     <label className="form-label">Bus Number</label>
-                    {busNumberOptions[busId] ? (
-                      <select
-                        className="form-control"
-                        name="busNumber"
-                        value={formData.busNumber}
-                        onChange={handleChange}
-                        required
-                      >
-                        <option value="">Select Bus Number</option>
-                        {busNumberOptions[busId].map((num) => (
-                          <option key={num} value={num}>{num}</option>
-                        ))}
-                      </select>
-                    ) : (
+                    
                       <input
                         type="text"
                         className="form-control"
                         name="busNumber"
-                        value={formData.busNumber}
+                        value={busId}
                         onChange={handleChange}
                         required
+                        disabled
                       />
-                    )}
+                   
                   </div>
                   <div className="col-12">
                     <button type="submit" className="btn btn-success">{editBooking ? 'Update' : 'Reserve'}</button>
