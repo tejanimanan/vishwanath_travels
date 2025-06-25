@@ -3,36 +3,81 @@ import { Link, useParams } from 'react-router-dom';
 import { database } from '../firebase';
 import { ref, set, onValue, remove } from 'firebase/database';
 import { toast, ToastContainer } from 'react-toastify';
+// import Ticket from './Ticket';
+import ReactDOMServer from 'react-dom/server';
+import VishwanathTicket from './VishwanathTicket';
 
 const TOTAL_SEATS = 36; // Increased to 36
 const lowerDeckLayout = [
-  [3, 1, 2],
-  [9, 7, 8],
-  [15, 13, 14],
-  [21, 19, 20],
-  [27, 25, 26],
-  [33, 31, 32],
+  [2, 3, 4],
+  [11, 9, 10],
+  [14, 15, 16],
+  [23, 21, 22],
+  [26, 27, 28],
+  [32, 33, 34],
 
 ];
 
 const upperDeckLayout = [
-  [6, 4, 5],
-  [12, 10, 11],
-  [18, 16, 17],
-  [24, 22, 23],
-  [30, 28, 29],
-  [36, 34, 35],
+  [1, 5, 6],
+  [12, 7, 8],
+  [13, 17, 18],
+  [24, 19, 20],
+  [25, 29, 30],
+  [31, 35, 36],
 ];
+// const renderDeck = (layout, reservedSeatNumbers, handleSeatClick) => {
+//   return layout.map((row, rowIndex) => (
+//     <div className="d-flex mb-2" key={rowIndex}>
+//       {row.map((cell, colIndex) => {
+//         const isNumber = typeof cell === 'number';
+//         const isReserved = reservedSeatNumbers.includes(cell);
+//         return (
+//           <div
+//             key={colIndex}
+//             className={`d-flex align-items-center justify-content-center border me-2 ${isNumber ? 'btn' : ''} ${isReserved ? 'btn-danger' : isNumber ? 'btn-outline-primary' : 'bg-dark text-white'}`}
+//             style={{
+//               width: 50,
+//               height: 50,
+//               cursor: isNumber && !isReserved ? 'pointer' : 'default'
+//             }}
+//             onClick={() => isNumber && !isReserved && handleSeatClick(cell)}
+//           >
+//             {cell}
+//           </div>
+//         );
+//       })}
+//     </div>
+//   ));
+// };
+
+const coupleSeatPairs = [
+  [3, 4], [5, 6], [7, 8], [9, 10],
+  [15, 16], [17, 18], [19, 20], [21, 22], [27, 28], [29, 30], [33, 34], [35, 36]
+];
+const isCoupleSeat = (seat) => {
+  return coupleSeatPairs.some(pair => pair.includes(seat));
+};
+
 const renderDeck = (layout, reservedSeatNumbers, handleSeatClick) => {
   return layout.map((row, rowIndex) => (
     <div className="d-flex mb-2" key={rowIndex}>
       {row.map((cell, colIndex) => {
         const isNumber = typeof cell === 'number';
         const isReserved = reservedSeatNumbers.includes(cell);
+        const isCouple = isNumber && isCoupleSeat(cell);
+
+        let btnClass = 'btn-outline-primary';
+        if (isReserved) {
+          btnClass = 'btn-danger';
+        } else if (isCouple) {
+          btnClass = 'btn-warning'; // Bootstrap warning color for couple seat
+        }
+
         return (
           <div
             key={colIndex}
-            className={`d-flex align-items-center justify-content-center border me-2 ${isNumber ? 'btn' : ''} ${isReserved ? 'btn-danger' : isNumber ? 'btn-outline-primary' : 'bg-dark text-white'}`}
+            className={`d-flex align-items-center justify-content-center border me-2 ${isNumber ? `btn ${btnClass}` : 'bg-dark text-white'}`}
             style={{
               width: 50,
               height: 50,
@@ -49,16 +94,14 @@ const renderDeck = (layout, reservedSeatNumbers, handleSeatClick) => {
 };
 
 
+
 const getTodayDate = () => {
   const today = new Date();
   return today.toISOString().split('T')[0];
 };
 
 // Define couple seat pairs
-const coupleSeatPairs = [
-  [1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12],
-  [13, 14], [15, 16], [17, 18], [19, 20], [21, 22], [23, 24]
-];
+
 
 // Helper to find the couple seat for a given seat
 const getCoupleSeat = (seat) => {
@@ -103,6 +146,7 @@ export default function BusBooking() {
     });
     return () => unsubscribe();
   }, [busId, filterDate]);
+
 
   // When editing, pre-fill the form and open the modal
   useEffect(() => {
@@ -222,13 +266,13 @@ export default function BusBooking() {
       <div className="row justify-content-center">
         <div className="col-md-10 d-flex justify-content-around flex-wrap">
           <div>
-            <h5 className="text-center">Lower Deck</h5>
+            <h5 className="text-center">નીચે  (Lower Deck)</h5>
             {renderDeck(lowerDeckLayout, reservedSeatNumbers, handleSeatClick)}
           </div>
           {busId === 'Mountain7474' && (
             <img src="/mountain-2.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px", borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
           )}
-           {busId === 'Mountain7575' && (
+          {busId === 'Mountain7575' && (
             <img src="/mountain-2.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px", borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
           )}
           {busId === 'Tarzzan6000' && (
@@ -256,7 +300,7 @@ export default function BusBooking() {
             <img src="/mastang-2.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px", borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
           )}
           <div>
-            <h5 className="text-center">Upper Deck</h5>
+            <h5 className="text-center">ઉપર (Upper Deck)</h5>
             {renderDeck(upperDeckLayout, reservedSeatNumbers, handleSeatClick)}
           </div>
         </div>
@@ -274,44 +318,64 @@ export default function BusBooking() {
                 value={filterDate}
                 onChange={e => setFilterDate(e.target.value)}
               />
+              <button className="btn btn-success" onClick={handlePrintAllTickets}>
+                Print All Tickets
+              </button>
             </div>
             <div className="card-body" style={{ maxHeight: 400, overflowY: 'auto' }}>
               {bookingsForDate.length === 0 ? (
                 <div className="text-muted">No bookings for this date.</div>
               ) : (
                 <div className="table-responsive">
-                  <table className="table table-bordered align-middle">
+                  <table className="table table-bordered align-middle table-striped table-hover">
                     <thead className="table-light">
                       <tr>
                         <th>Seat(s)</th>
                         <th>Name</th>
                         <th>Mobile</th>
                         <th>From</th>
-                        <th>To</th>
+                        <th>destination</th>
                         <th>Bus Name</th>
-                       
                         <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {bookingsForDate.map((b, idx) => (
-                        <tr key={idx} style={{ cursor: 'pointer' }}>
+                        <tr key={idx}>
                           <td>{b.coupleSeats ? b.coupleSeats.join(', ') : b.seat}</td>
-                          <td>{b.name}</td>
-                          <td>{b.number}</td>
-                          <td>{b.takeoff}</td>
-                          <td>{b.destination}</td>
-                          <td>{b.busName}</td>
-                          
+                          <td className="text-break">{b.name}</td>
+                          <td className="text-break">{b.number}</td>
+                          <td className="text-break">{b.takeoff}</td>
+                          <td className="text-break">{b.destination}</td>
+                          <td className="text-break">{b.busName}</td>
                           <td>
-                            <button className="btn btn-sm btn-primary me-2" onClick={() => handleEditBooking(b)}>Edit</button>
-                            <button className="btn btn-sm btn-danger" onClick={() => handleDeleteBooking(b)}>Delete</button>
+                            <div className="d-flex flex-wrap gap-2">
+                              <button
+                                className="btn btn-sm btn-primary flex-fill"
+                                onClick={() => handleEditBooking(b)}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                className="btn btn-sm btn-danger flex-fill"
+                                onClick={() => handleDeleteBooking(b)}
+                              >
+                                Delete
+                              </button>
+                              <button
+                                className="btn btn-sm btn-secondary flex-fill"
+                                onClick={() => handlePrintTicket(b)}
+                              >
+                                Print
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
+
               )}
             </div>
           </div>
@@ -411,17 +475,17 @@ export default function BusBooking() {
                   </div>
                   <div className="col-md-6">
                     <label className="form-label">Bus Number</label>
-                    
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="busNumber"
-                        value={busId}
-                        onChange={handleChange}
-                        required
-                        disabled
-                      />
-                   
+
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="busNumber"
+                      value={busId}
+                      onChange={handleChange}
+                      required
+                      disabled
+                    />
+
                   </div>
                   <div className="col-12">
                     <button type="submit" className="btn btn-success">{editBooking ? 'Update' : 'Reserve'}</button>
@@ -433,6 +497,81 @@ export default function BusBooking() {
           </div>
         </div>
       )}
+      <div id="ticket-print" style={{ display: 'none' }}>
+        {bookingsForDate.map((b, idx) => (
+          <div key={idx} style={{ padding: 10, border: '1px dashed gray', marginBottom: "80px",marginTop:"50px" }} >
+            <h4>🚌 Bus Ticket</h4>
+            <p><strong>Bus:</strong> {b.busName}</p>
+            <p><strong>Bus Number:</strong> {b.busNumber}</p>
+            <p><strong>Seat(s):</strong> {b.coupleSeats ? b.coupleSeats.join(', ') : b.seat}</p>
+            <p><strong>Name:</strong> {b.name}</p>
+            <p><strong>Mobile:</strong> {b.number}</p>
+            <p><strong>From:</strong> {b.takeoff}</p>
+            <p><strong>To:</strong> {b.destination}</p>
+            <p><strong>Date:</strong> {b.date}</p>
+            <p><strong>Price:</strong> ₹500</p> {/* You can make this dynamic later */}
+          </div>
+        ))}
+        
+      </div>
+
     </div>
   );
-} 
+}
+
+const handlePrintTicket = (booking) => {
+  const ticketHTML = ReactDOMServer.renderToStaticMarkup(<VishwanathTicket booking={booking} />);
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Ticket</title>
+        <style>
+          body { font-family: Arial; padding: 20px; }
+          .ticket { border: 1px solid black; padding: 10px; width: 300px; }
+        </style>
+      </head>
+      <body>${ticketHTML}</body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.print();
+  printWindow.close();
+};
+
+const handlePrintAllTickets = () => {
+  const content = document.getElementById('ticket-print').innerHTML;
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>All Tickets</title>
+        <style>
+          body {
+            font-family: Arial;
+            padding: 20px;
+          }
+          .ticket {
+            margin-bottom: 40px;
+            border-bottom: 1px dashed #333;
+            padding-bottom: 10px;
+          }
+          .page-group {
+            margin-bottom: 40px;
+            page-break-after: always;
+          }
+          .page-group:last-child {
+            page-break-after: auto;
+          }
+        </style>
+      </head>
+      <body>
+        ${content}
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+  printWindow.close();
+};
