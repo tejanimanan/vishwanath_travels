@@ -6,8 +6,10 @@ import { toast, ToastContainer } from 'react-toastify';
 // import Ticket from './Ticket';
 import ReactDOMServer from 'react-dom/server';
 import VishwanathTicket from './VishwanathTicket';
-
-const TOTAL_SEATS = 36; // Increased to 36
+import { Select } from 'antd';
+const { Option } = Select;
+// const TOTAL_SEATS = 36; // Increased to 36
+const locations = ['Surat', 'Kamrej', 'Nari Chok', 'Bardoli', 'Jambala', 'Bhavnagar'];
 const lowerDeckLayout = [
   [2, 3, 4],
   [11, 9, 10],
@@ -17,6 +19,7 @@ const lowerDeckLayout = [
   [32, 33, 34],
 
 ];
+
 
 const upperDeckLayout = [
   [1, 5, 6],
@@ -166,7 +169,9 @@ export default function BusBooking() {
   const handleSeatClick = (seat) => {
     setSelectedSeat(seat);
   };
-
+  const handleSelectChange = (value, name) => {
+    setFormData({ ...formData, [name]: value });
+  };
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -210,17 +215,17 @@ export default function BusBooking() {
   // Only show one entry per couple booking
   const seenSeats = new Set();
   const bookingsForDate = reservedSeats
-  .filter(b => b.date === filterDate)
-  .filter(b => {
-    // Use the main seat (lowest in couple) as identifier
-    const seatKey = b.coupleSeats && b.coupleSeats.length > 1
-      ? Math.min(...b.coupleSeats)
-      : b.seat;
+    .filter(b => b.date === filterDate)
+    .filter(b => {
+      // Use the main seat (lowest in couple) as identifier
+      const seatKey = b.coupleSeats && b.coupleSeats.length > 1
+        ? Math.min(...b.coupleSeats)
+        : b.seat;
 
-    if (seenSeats.has(seatKey)) return false;
-    seenSeats.add(seatKey);
-    return true;
-  });
+      if (seenSeats.has(seatKey)) return false;
+      seenSeats.add(seatKey);
+      return true;
+    });
   const reservedSeatNumbers = reservedSeats.reduce((acc, b) => {
     if (b.coupleSeats && Array.isArray(b.coupleSeats)) {
       return acc.concat(b.coupleSeats);
@@ -447,25 +452,35 @@ export default function BusBooking() {
                   </div>
                   <div className="col-md-6">
                     <label className="form-label">Takeoff Place</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="takeoff"
+                    <Select
+                      showSearch
+                      className="w-100 z-100"
+                      placeholder="Select Takeoff Place"
                       value={formData.takeoff}
-                      onChange={handleChange}
+                      onChange={(value) => handleSelectChange(value, 'takeoff')}
                       required
-                    />
+                      getPopupContainer={(trigger) => trigger.parentNode}
+                    >
+                      {locations.map(loc => (
+                        <Option key={loc} value={loc}>{loc}</Option>
+                      ))}
+                    </Select>
                   </div>
                   <div className="col-md-6">
                     <label className="form-label">Destination Place</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="destination"
+                    <Select
+                      showSearch
+                      className="w-100"
+                      placeholder="Select Destination Place"
                       value={formData.destination}
-                      onChange={handleChange}
+                      onChange={(value) => handleSelectChange(value, 'destination')}
                       required
-                    />
+                      getPopupContainer={(trigger) => trigger.parentNode}
+                    >
+                      {locations.map(loc => (
+                        <Option key={loc} value={loc}>{loc}</Option>
+                      ))}
+                    </Select>
                   </div>
                   <div className="col-md-6">
                     <label className="form-label">Date</label>
@@ -494,7 +509,16 @@ export default function BusBooking() {
                   </div>
                   <div className="col-12">
                     <button type="submit" className="btn btn-success">{editBooking ? 'Update' : 'Reserve'}</button>
-                    <button type="button" className="btn btn-secondary ms-2" onClick={() => { setSelectedSeat(null); setEditBooking(null); }}>Cancel</button>
+                    <button type="button" className="btn btn-secondary ms-2" onClick={() => {
+                      setSelectedSeat(null); setEditBooking(null); setFormData({
+                        name: '',
+                        number: '',
+                        takeoff: '',
+                        destination: '',
+                        date: getTodayDate(),
+                        busNumber: '',
+                      });
+                    }}>Cancel</button>
                   </div>
                 </form>
               </div>
@@ -504,7 +528,7 @@ export default function BusBooking() {
       )}
       <div id="ticket-print" style={{ display: 'none' }}>
         {bookingsForDate.map((b, idx) => (
-          <div key={idx} style={{ padding: 10, border: '1px dashed gray', marginBottom: "80px",marginTop:"50px" }} >
+          <div key={idx} style={{ padding: 10, border: '1px dashed gray', marginBottom: "80px", marginTop: "50px" }} >
             <h4>🚌 Bus Ticket</h4>
             <p><strong>Bus:</strong> {b.busName}</p>
             <p><strong>Bus Number:</strong> {b.busNumber}</p>
@@ -517,7 +541,7 @@ export default function BusBooking() {
             <p><strong>Price:</strong> ₹500</p> {/* You can make this dynamic later */}
           </div>
         ))}
-        
+
       </div>
 
     </div>
