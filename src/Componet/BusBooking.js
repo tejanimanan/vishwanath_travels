@@ -176,9 +176,9 @@ export default function BusBooking() {
     let coupleSeats = [selectedSeat];
     const couple = getCoupleSeat(selectedSeat);
     if (couple) coupleSeats.push(couple);
-    coupleSeats = coupleSeats.sort((a, b) => a - b); // Always sorted
+    // coupleSeats = coupleSeats.sort((a, b) => a - b); // Always sorted
     const booking = {
-      seat: Math.min(...coupleSeats), // Always the lowest seat for the booking
+      seat: coupleSeats, // Always the lowest seat for the booking
       coupleSeats,
       ...formData,
       busName: busId,
@@ -208,13 +208,18 @@ export default function BusBooking() {
   // Filter bookings for the selected date
   const bookingsForDateRaw = reservedSeats.filter(b => b.date === filterDate);
   // Only show one entry per couple booking
-  const bookingsForDate = bookingsForDateRaw.filter((b, idx, arr) => {
-    if (b.coupleSeats && b.coupleSeats.length > 1) {
-      // Only show for the lowest seat in the couple
-      return Math.min(...b.coupleSeats) === b.seat;
-    }
-    // For single seats, show as is
-    return !arr.some((other, i) => i < idx && other.seat === b.seat && other.date === b.date);
+  const seenSeats = new Set();
+  const bookingsForDate = reservedSeats
+  .filter(b => b.date === filterDate)
+  .filter(b => {
+    // Use the main seat (lowest in couple) as identifier
+    const seatKey = b.coupleSeats && b.coupleSeats.length > 1
+      ? Math.min(...b.coupleSeats)
+      : b.seat;
+
+    if (seenSeats.has(seatKey)) return false;
+    seenSeats.add(seatKey);
+    return true;
   });
   const reservedSeatNumbers = reservedSeats.reduce((acc, b) => {
     if (b.coupleSeats && Array.isArray(b.coupleSeats)) {
