@@ -274,11 +274,11 @@ export default function BusBooking() {
             <h5 className="text-center">નીચે  (Lower Deck)</h5>
             {renderDeck(lowerDeckLayout, reservedSeatNumbers, handleSeatClick)}
           </div>
-          {busId === 'Mountain7474' && (
+          {busId === 'Mountain7002' && (
             <img src="/mountain-2.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px", borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
           )}
-          {busId === 'Mountain7575' && (
-            <img src="/mountain-2.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px", borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
+          {busId === 'Mountain7001' && (
+            <img src="/mountain-6.jpg" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px", borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
           )}
           {busId === 'Tarzzan6000' && (
             <img src="/v1.png" alt="Tarzzan" className='mt-5' style={{ width: "300px", height: "300px", borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
