@@ -23,13 +23,14 @@ export default function ImageSlider() {
         <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to={2} aria-label="Slide 3" />
         <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to={3} aria-label="Slide 4" />
         <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to={4} aria-label="Slide 5" />
+        
       </div>
       <div className="carousel-inner" style={{height:"500px"}}>
         <div className="carousel-item active" >
           <img src="/collage2.jpg" className="d-block w-100 h-100 object-fit-cover" alt="..." />
         </div>
         <div className="carousel-item">
-          <img src="/collage1.jpg" className="d-block w-100 object-fit-cover" alt="..." />
+          <img src="/mama2.jpg" className="d-block w-100 object-fit-cover" alt="..." />
         </div>
         <div className="carousel-item">
           <img src="/collage10.jpg" className="d-block w-100 object-fit-cover" alt="..." />
@@ -40,6 +41,7 @@ export default function ImageSlider() {
         <div className="carousel-item">
           <img src="/collage8.jpg" className="w-100 img-fulid object-fit-cover" alt="..." />
         </div>
+        
       </div>
       <button className="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
         <span className="carousel-control-prev-icon" aria-hidden="true" />
