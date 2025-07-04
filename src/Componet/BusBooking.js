@@ -133,6 +133,10 @@ export default function BusBooking() {
   const [modalBooking, setModalBooking] = useState(null); // For modal
   const [message, setMessage] = useState(null); // For error/success messages
   const [editBooking, setEditBooking] = useState(null);
+  const [todaycash, SetTodayCash] = useState()
+  const [TotalCash, SetTotalCash] = useState()
+  const [totalSeats, SetTotalSeat] = useState()
+
 
   // Load reserved seats from Firebase for this bus and date
   useEffect(() => {
@@ -250,7 +254,18 @@ export default function BusBooking() {
   const handleCloseModal = () => setModalBooking(null);
   // Reserve form modal handler
   const handleCloseReserveModal = () => setSelectedSeat(null);
+  useEffect(() => {
+    const totalSeats = bookingsForDate.reduce((acc, booking) => {
+      const count = booking.coupleSeats?.length || 1;
+      return acc + count;
+    }, 0);
 
+    const cash = todaycash && !isNaN(todaycash)
+      ? totalSeats * Number(todaycash)
+      : 0;
+    SetTotalSeat(totalSeats)
+    SetTotalCash(cash);
+  }, [bookingsForDate, todaycash]);
   return (
     <div className="container mt-4">
       {/* Bus image at the top */}
@@ -354,7 +369,9 @@ export default function BusBooking() {
                         <tr key={idx}>
                           <td>{b.coupleSeats ? b.coupleSeats.join(', ') : b.seat}</td>
                           <td className="text-break">{b.name}</td>
-                          <td className="text-break">{b.number}</td>
+                          <td className="text-break"><a href={`tel:${b.number}`} className="text-decoration-none text-dark d-flex align-items-center gap-2">
+                            <i className="bi bi-telephone-fill text-success"></i> {b.number}
+                          </a></td>
                           <td className="text-break">{b.takeoff}</td>
                           <td className="text-break">{b.destination}</td>
                           <td className="text-break">{b.busName}</td>
@@ -372,12 +389,12 @@ export default function BusBooking() {
                               >
                                 Delete
                               </button>
-                              <button
+                              {/* <button
                                 className="btn btn-sm btn-secondary flex-fill"
                                 onClick={() => handlePrintTicket(b)}
                               >
                                 Print
-                              </button>
+                              </button> */}
                             </div>
                           </td>
                         </tr>
@@ -386,7 +403,22 @@ export default function BusBooking() {
                   </table>
                 </div>
 
+
               )}
+              <div className='d-flex gap-3 text-start p-2'>
+                <div className='mb-2'>
+                  <label className='form-label fw-bold'>Total Seat</label>
+                  <input type='text' className='p-2 form-control' value={totalSeats} disabled></input>
+                </div>
+                <div className='mb-2'>
+                  <label className='form-label fw-bold'>Today seat Price</label>
+                  <input type='text' className='p-2 form-control ' value={todaycash} onChange={(e) => SetTodayCash(e.target.value)} placeholder='Enter today seat Price'></input>
+                </div>
+                <div className='mb-2'>
+                  <label className='form-label fw-bold'>Today Total cash</label>
+                  <input type='text' className='p-2 form-control ' value={TotalCash} disabled></input>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -528,20 +560,74 @@ export default function BusBooking() {
       )}
       <div id="ticket-print" style={{ display: 'none' }}>
         {bookingsForDate.map((b, idx) => (
-          <div key={idx} style={{ padding: 10, border: '1px dashed gray', marginBottom: "80px", marginTop: "50px" }} >
-            <h4>🚌 Bus Ticket</h4>
-            <p><strong>Bus:</strong> {b.busName}</p>
-            <p><strong>Bus Number:</strong> {b.busNumber}</p>
-            <p><strong>Seat(s):</strong> {b.coupleSeats ? b.coupleSeats.join(', ') : b.seat}</p>
-            <p><strong>Name:</strong> {b.name}</p>
-            <p><strong>Mobile:</strong> {b.number}</p>
-            <p><strong>From:</strong> {b.takeoff}</p>
-            <p><strong>To:</strong> {b.destination}</p>
-            <p><strong>Date:</strong> {b.date}</p>
-            <p><strong>Price:</strong> ₹500</p> {/* You can make this dynamic later */}
+          <div
+            key={idx}
+            style={{
+              width: '620px',
+              marginBottom:"10px",
+              padding: '16px',
+              backgroundColor: '#e6f0ff',
+              border: '2px solid black',
+              fontFamily: 'Gujarati, Arial, sans-serif',
+              color: '#000',
+            }}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
+              <img
+                src="/vishwnathlogo.png" // ← Make sure this logo exists in your public folder
+                alt="Vishwanath Logo"
+                style={{ width: 80, height: 100, marginRight: 10 }}
+              />
+              <div>
+                <h3 style={{ margin: 0, fontWeight: 'bold', fontSize: '24px' }}>વિશ્વનાથ ટ્રાવેલ્સ</h3>
+                {/* <small>Shree Ganeshay Namah</small> */}
+              </div>
+            </div>
+
+            {/* Ticket Info */}
+            <table style={{ width: '100%', marginBottom: '16px', fontSize: '16px' }}>
+              <tbody>
+                <tr>
+                  <td><strong>તારીખ :</strong></td>
+                  <td>{b.date}</td>
+                </tr>
+                <tr>
+                  <td><strong>ગામ :</strong></td>
+                  <td>{b.takeoff}</td>
+                </tr>
+                <tr>
+                  <td><strong>સીટ નં. :</strong></td>
+                  <td>{b.coupleSeats ? b.coupleSeats.join(', ') : b.seat}</td>
+                </tr>
+                <tr>
+                  <td><strong>કુલ સીટ :</strong></td>
+                  <td>{b.coupleSeats?.length || 1}</td>
+                </tr>
+                <tr>
+                  <td><strong>ગાડી નં. :</strong></td>
+                  <td>{b.busName}</td>
+                </tr>
+                <tr>
+                  <td><strong>કુલ રકમ :</strong></td>
+                  <td>₹{todaycash || 500} × {b.coupleSeats?.length || 1} = ₹{(todaycash || 500) * (b.coupleSeats?.length || 1)}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            {/* Footer */}
+            <div style={{ borderTop: '1px dashed #000', paddingTop: 8 }}>
+              <div style={{ fontSize: '14px', marginBottom: 4 }}>
+                <strong>હેડ ઓફિસ સુરત</strong><br />
+                U-8, સહજાનંદ કોમ્પ્લેક્ષ, વિદ્યાલય, સુરત. Mo.  Mo. ८२ ૭૪૬૭ ૭૦૦૧
+              </div>
+              <div style={{ fontSize: '14px' }}>
+                <strong>હેડ ઓફિસ ભાવનગર</strong><br />
+                બસ સ્ટેન્ડની સામે, વિજયી સર્કલ કાપડિયા બિલ્ડ., ભાવનગર. Mo. ૯૯ ૨૪૬૭ ૭૦૦૨
+              </div>
+            </div>
           </div>
         ))}
-
       </div>
 
     </div>
@@ -579,6 +665,7 @@ const handlePrintAllTickets = () => {
           body {
             font-family: Arial;
             padding: 20px;
+            
           }
           .ticket {
             margin-bottom: 40px;

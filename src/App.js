@@ -9,6 +9,7 @@ import Navbar from './Componet/Navbar';
 import Surat from './Componet/Surat';
 import BusBooking from './Componet/BusBooking';
 import { ToastContainer } from 'react-toastify';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 
 function App() {
   return (
